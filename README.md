@@ -14,8 +14,9 @@
 
 目前可以解决的情况
 
-1. mod N或mod p的单变元(多变元)方程
-2. mod N或mod p的单变元(多变元)方程组
+​	mod N、mod p和mod kp的单变元(多变元)方程(方程组)
+
+
 
 ## 关于 Config
 
