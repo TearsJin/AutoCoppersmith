@@ -22,4 +22,5 @@ f2 -= f2(*roots)
 
 
 Cp = Coppersmith(beta = 1,logging_level = Coppersmith.logging_level_DEBUG)
+print(Cp.small_roots([f1],bounds,3))
 print(Cp.small_roots([f1,f2],bounds,3))
