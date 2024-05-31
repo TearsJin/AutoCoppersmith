@@ -6,7 +6,7 @@ setup(
     description = "AutoCoppersmith tools by Tearsjin",
     author = "Tearsjin",
     packages = find_packages(),
-    install_requires = ["requests"],
+    install_requires = ["tqdm"],
     classifiers = [
         "Progamming Language :: Sagemath 9.5",
         "License:: OSI Approved :: MIT License"
