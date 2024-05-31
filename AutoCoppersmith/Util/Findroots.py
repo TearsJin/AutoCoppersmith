@@ -34,6 +34,7 @@ class rootsFinder:
         if self.rfconfig.gbLimitNum > len(Hs) - 1:
             self.rfconfig.gbLimitNum = -1
             logging.warning("Length of Hs less than gbLimitNum.")
+        logging.debug("Start Findroots.")
         for i in tqdm(range(len(Hs) - 1, self.rfconfig.gbLimitNum,- 1)):
             Hs_ = deepcopy(Hs[:i])
             for _ in range(self.rfconfig.tryTimes):

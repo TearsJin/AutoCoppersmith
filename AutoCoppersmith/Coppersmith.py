@@ -170,10 +170,6 @@ class Coppersmith:
             logging.warning("beta = 1 then u will not use")
 
 
-        if self.k == 1:
-            x, = polygens(self.f0.base_ring(), self.f0.variable_name(), 1)
-            fs = [f(x) for f in fs]
-
         # monic
         polys = []
         for f in fs:
