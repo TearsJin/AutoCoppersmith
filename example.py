@@ -1,5 +1,6 @@
 from Crypto.Util.number import getPrime
 from AutoCoppersmith.Coppersmith import *
+from AutoCoppersmith.Util.Config import ETConfig
 
 from sage.all import *
 
@@ -24,3 +25,19 @@ f2 -= f2(*roots)
 Cp = Coppersmith(beta = 1,logging_level = Coppersmith.logging_level_DEBUG)
 print(Cp.small_roots([f1],bounds,3))
 print(Cp.small_roots([f1,f2],bounds,3))
+
+
+bounds = (floor(N ** 0.1), floor(N ** 0.1))
+roots = tuple(randrange(bound) for bound in bounds)
+R = PolynomialRing(Zmod(N),["x","y"],2)
+x,y = R.gens()
+monomials = [x, y, x*y, x ** 2]
+f = sum(randrange(N)*monomial for monomial in monomials)
+f -= f(*roots)
+
+exconfig = ETConfig(Ts = [0,1])
+
+Cp = Coppersmith(beta = 1,etconfig = etconfig, logging_level = Coppersmith.logging_level_DEBUG)
+print(Cp.small_roots([f],bounds,3))
+
+
