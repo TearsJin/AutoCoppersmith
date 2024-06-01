@@ -1,20 +1,21 @@
+from sage.all import *
+
 import logging
+from tqdm import tqdm
+from itertools import product
 from AutoCoppersmith.Util.Config import RFConfig
 from AutoCoppersmith.Util.Misc import check_package_exists
-from tqdm import tqdm
-
-from sage.all import *
 
 if check_package_exists("fgb_sage"):
     import fgb_sage
-    FGB_EXIST = False
+    FGB_EXIST = True
 else:
     FGB_EXIST = False
     
 
 class rootsFinder:
     def __init__(self,rfconfig: RFConfig) -> None:
-        self.rfconfig = RFConfig() if rfconfig == None else rfconfig()            
+        self.rfconfig = RFConfig() if rfconfig == None else rfconfig           
 
     def find_roots(self,R,Hs,bounds = []) -> None:
 
@@ -23,7 +24,7 @@ class rootsFinder:
         if method == RFConfig.method_GROEBNER:
             roots = self.__find_roots_groebner(R,Hs)
         elif method == RFConfig.method_CRT:
-            pass
+            roots = self.__find_roots_CRT(R,Hs,bounds)
         elif method == RFConfig.method_VARIETY:
             roots = self.__find_roots_variety(R,Hs)
         return roots
@@ -36,23 +37,75 @@ class rootsFinder:
             logging.warning("Length of Hs less than gbLimitNum.")
         logging.debug("Start Findroots.")
         for i in tqdm(range(len(Hs) - 1, self.rfconfig.gbLimitNum,- 1)):
-            Hs_ = deepcopy(Hs[:i])
-            for _ in range(self.rfconfig.tryTimes):
-                I = Sequence(Hs_,R.change_ring(QQ)).ideal()
-                if FGB_EXIST:
-                    I = ideal(fgb_sage.groebner_basis(I,threads = self.rfconfig.fgbThreads, verbosity = 0))
-                else:
-                    I = ideal(I.groebner_basis())
-                if I.dimension() == 0:
-                    for root in I.variety(ring = ZZ):
-                        root = tuple(root[var] for var in vars)
-                        if 0 not in root :
-                            roots.append(root)
-                if roots != []:
-                    return roots
-                else:
-                    shuffle(Hs_)
-                
+            I = Sequence(Hs[:i],R.change_ring(QQ)).ideal()
+            if FGB_EXIST:
+                I = ideal(fgb_sage.groebner_basis(I,threads = self.rfconfig.fgbThreads, verbosity = 0))
+            else:
+                I = ideal(I.groebner_basis())
+            if I.dimension() == 0:
+                for root in I.variety(ring = ZZ):
+                    root = tuple(root[var] for var in vars)
+                    if 0 not in root :
+                        roots.append(root)
+            if roots != []:
+                return roots
+
+
+    def __find_roots_CRT(self,R,Hs,bounds):
+        roots = []
+        vars = R.gens()
+
+
+        k = len(vars)
+        Hs = [h.change_ring(ZZ) for h in Hs]
+        maxBound = max(bounds)
+        remainders = [[] for _ in range(k)]
+        modulus = 1
+        moduli = []
+
+        P = min(maxBound,Integer(2 ** 25))
+        while modulus < maxBound and len(Hs) > 0:
+            P = Primes().next(P)
+            R = R.change_ring(GF(P))
+            solutions = []
+            I = R * Hs
+            # fgb_sage should add
+            I = Ideal(I.groebner_basis())
+            if I.dimension() == 0:
+                solutions = I.variety()
+
+                if len(solutions) == 1:
+                    solutions = [int(solutions[0][var]) for var in vars ]
+                    for remainder,solution in zip(remainders,solutions):
+                        remainder.append(solution)
+                    moduli.append(P)
+                    modulus *= P
+                    continue
+
+                if len(solutions) > 1 and ALERT:
+                    ALERT = False
+                    logging.debug("Find more than one roots! The result may goes wrong. ")
+            Hs.pop(-1)
+
+
+        if len(Hs) != 0:
+            res = list(int(crt(remainders[i], moduli)) for i in range(k))
+            for root in res:
+                roots.append([root,root - modulus])
+            roots = [root for root in product(*roots)]
+            if self.rfconfig.crtRootSign != []:
+                i = 0
+                while i != len(roots):
+                    _ = False
+                    for r,sign in zip(roots[i], self.rfconfig.crtRootSign):
+                        if r * sign < 0:
+                            _ = True
+                    if _:
+                        roots.pop(i)
+                    else:
+                        i += 1
+        return roots
+
     def __find_roots_variety(self,R,Hs):
         roots = []
         vars = R.gens()

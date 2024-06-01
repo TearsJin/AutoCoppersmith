@@ -1,9 +1,9 @@
+from sage.all import *
+
 import logging
 import sys
 from AutoCoppersmith.Util.Lattice import flatter
 from AutoCoppersmith.Util.Findroots import rootsFinder
-
-from sage.all import *
 
 LOG_FORMAT = " %(levelname)s - %(message)s"
 sys.set_int_max_str_digits(0)
@@ -11,13 +11,19 @@ class Coppersmith:
     logging_level_INFO = logging.INFO
     logging_level_DEBUG = logging.DEBUG
 
+    mode_MODN = 1
+    mode_MODP = 2
+    mode_MODUP = 3
+
     code_level_ATTACK = 1
     code_level_EXP = 2
-    def __init__(self,beta = 1, rfconfig = None, etconfig = None, code_level = code_level_ATTACK,logging_level = logging_level_DEBUG) -> None:
-            
+    def __init__(self,mode = mode_MODN,modulus = None,beta = 1, rfconfig = None, etconfig = None, ulconfig = None, code_level = code_level_ATTACK,logging_level = logging_level_DEBUG) -> None:
+        
+        self.mode = mode
         self.beta = beta
         self.rfconfig = rfconfig
         self.etconfig = etconfig
+        self.ulconfig = ulconfig
         self.code_level = code_level
 
         logging.basicConfig(level = logging_level, format = LOG_FORMAT )
@@ -26,6 +32,17 @@ class Coppersmith:
             logging.error("Invalid beta")
             exit()
 
+        if self.mode == self.mode_MODUP:
+            if modulus == None:
+                logging.error("Mode MODUP need modulus.")
+                exit()
+            self.modulus = modulus
+
+    def __exgcd(self,mons: list):
+        if len(mons) == 2:
+            return gcd(*mons)
+        return self.__exgcd((gcd(*mons[:2]),) + mons[2:])
+        
     def __digCalculate(self) -> None:
         B = deepcopy(self.B)
         factors = [monomial(*self.bounds) for monomial in self.monomials]
@@ -70,7 +87,7 @@ class Coppersmith:
 
         self.M = set(self.M)
 
-        # extend strategy
+        # Extend strategy
         if self.etconfig != None:
             if self.etconfig.Ts == [] or len(self.etconfig.Ts) != self.k:
                 self.etconfig.Ts = [0] * self.k
@@ -85,9 +102,16 @@ class Coppersmith:
         
             self.M = set(self.M)
 
+        # Unravelled Linearization
+        if self.ulconfig != None:
+            qr = self.R.quotient(self.ulconfig.qr)
+            M = []
+            for mon in self.M:
+                M += qr(mon).lift().monomials()
+            self.M = set(M)
+
         logging.debug("ConstructM done.")
         logging.debug("The num of monomials: {}".format(len(self.M)))
-        logging.debug("The monomials: {}".format(self.M))
 
     def __ConstructF(self) -> None:
         iis = []
@@ -99,13 +123,17 @@ class Coppersmith:
 
         self.labels = []
         self.F = Sequence([],self.R)
+
         for mon in self.M:
             candidatePoly = 1
             label = -1
             for ii in iis:
                 LM = prod([poly.lm() ** i for i,poly in zip(ii,self.polys)])
                 if mon % LM == 0:
-                    P = prod([poly ** i for i,poly in zip(ii,self.polys)]) * (mon // LM) * (self.u ** (self.m - sum(ii)) * self.modulus ** (self.t - sum(ii)))
+                    P = prod([poly ** i for i,poly in zip(ii,self.polys)]) * (mon // LM) * (self.u ** (self.m - sum(ii)) * self.modulus ** (max(0,self.t - sum(ii))))
+                    if self.ulconfig != None:
+                        qr = self.R.quotient(self.ulconfig.qr)
+                        P = qr(P).lift()
                     if set(P.monomials()).issubset(set(self.M)) and  P.lm() == mon and sum(ii) > label:
                         candidatePoly = P
                         label = sum(ii)
@@ -116,7 +144,13 @@ class Coppersmith:
         logging.debug("The num of polynomials: {}".format(len(self.F)))
 
     def __ConstructB(self) -> None:
-        B, monomials = self.F.coefficient_matrix()
+
+        try:
+            # for sagemath 10.3
+            B, monomials = self.F.coefficients_monomials()
+        except:
+            B, monomials = self.F.coefficient_matrix()
+
         monomials = vector(monomials)
 
         # Scale bounds
@@ -145,7 +179,7 @@ class Coppersmith:
         self.monomials = monomials
         logging.debug("ConstructB done.")
 
-    def small_roots(self,fs: list,bounds: list,i: int,u = 1,ROOTS = [],HsFilter = []) -> list:
+    def small_roots(self, fs: list, bounds: list, i: int, u = 1, ROOTS = [], HsFilter = []) -> list:
         """
         Small_roots:
         :param fs: Origin polys
@@ -159,17 +193,17 @@ class Coppersmith:
         self.n = len(fs)
         self.R = self.f0.parent()
         self.k = self.R.ngens()
-        self.modulus = self.f0.base_ring().cardinality()
         self.m = i * self.n
-        self.t = self.beta * self.m
+        self.t = ceil(self.beta * self.m)
         self.bounds = bounds
         self.u = u
 
-        if self.beta == 1 and self.u != 1:
-            self.u = 1
-            logging.warning("beta = 1 then u will not use")
-
-
+        if self.mode == self.mode_MODN or self.mode == self.mode_MODP:
+            if self.u != 1:
+                self.u = 1
+                logging.warning("Since beta = 1, u will not use.")
+            self.modulus = self.f0.base_ring().cardinality()
+           
         # monic
         polys = []
         for f in fs:
@@ -178,14 +212,21 @@ class Coppersmith:
             f /= LC // GCD
             polys.append(f.change_ring(ZZ))
 
-        self.R = polys[0].parent()
         self.polys = polys
+        self.R = polys[0].parent()
         self.vars = self.R.gens()
 
         self.__ConstructM()
         self.__ConstructF()
         self.__ConstructB()
         self.Hs = self.B * self.monomials
+        
+        if self.ulconfig != None:
+            Hs = []
+            for h in self.Hs:
+                Hs.append(h(*self.ulconfig.unqr))
+            self.Hs = Hs
+            self.R = self.ulconfig.unqr[0].parent()
 
 
         if ROOTS != []:

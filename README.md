@@ -1,5 +1,5 @@
 ```
-./AutoCoppersmith
+/AutoCoppersmith
     /Util
         Config.py
         Findroots.py
@@ -42,7 +42,7 @@ fgb_sage -> 加速gb https://github.com/mwageringel/fgb_sage
 
 1. 通用有益多项式选取
 
-2. 拆分线性化的适配
+2. 拆分线性化的适配 (已完成，可以通过Config中的ULConfig设置拆分线性化的等式)
 
 3. 扩展策略的默认策略
 
@@ -63,3 +63,8 @@ sage -python -m pip install .
 Solving the Hidden Number Problem for CSIDH and CSURF via Automated Coppersmith.
 
 Approximate Divisor Multiples Factoring with Only a Third of the Secret CRT-Exponents
+
+# log
+
+2024.5.31 第一次上传
+2024.6.1  添加了CRT求根、拆分线性化适配（Config.ULConfig）、fix了mod kp情况下的多项式构造出错的问题和对Coppersmith.py的整体流程进行的调整，使得整个流程适配新的mod kp以及拆分线性化
