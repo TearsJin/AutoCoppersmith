@@ -253,6 +253,7 @@ class Coppersmith:
                 Hs.append(h(*self.ulconfig.unqr))
             self.Hs = Hs
             self.R = self.ulconfig.unqr[0].parent()
+            self.bounds = [_(*self.bounds) for _ in self.ulconfig.unqr]
 
 
         if ROOTS != []:

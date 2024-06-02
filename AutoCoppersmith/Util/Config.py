@@ -50,22 +50,24 @@ class ULConfig:
     """
         Class for setting details of Unravelled Linearization.
     """
-    def __init__(self, qr, unqr: list) -> None:
+    def __init__(self, qr, unqr: list, bounds: list) -> None:
         """
             Initialize the Unravelled Linearization
 
                 :param qr:      Equations between new variables in the Unravelled Linearization.
                 :param unqr:    Relationships between old variables and new variables.
+                :param bounds:  The bounds of old variables
 
             Example:
                 PR1.<u1,u2,u3> = PolynomialRing(ZZ,3)
                 PR2.<x,y> = PolynomialRing(ZZ,2)
-                qr = [u2 ** 2 - u1 - u3]            #  u2 ** 2 = u1 + u3        
+                qr = u2 ** 2 - u1 - u3            #  u2 ** 2 = u1 + u3        
                 unqr = [x ** 2 - y, x , y]          #  u1 = x ** 2 - y, u2 = x, u3 = y 
                 ulconfig = ULConfig(qr,unqr)
         """
         self.qr = qr
         self.unqr = unqr
+        self.bounds = bounds
 
         if len(unqr) != qr.parent().ngens():
             logging.error("The length of unqr must equal the number of vars in qr.")
