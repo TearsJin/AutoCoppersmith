@@ -8,6 +8,23 @@ from AutoCoppersmith.Util.Findroots import rootsFinder
 LOG_FORMAT = " %(levelname)s - %(message)s"
 sys.set_int_max_str_digits(0)
 class Coppersmith:
+    '''
+        Coppersmith Main Class
+
+        Attributes:
+            logging_level_INFO:  Sets the logging level to Info
+            logging_level_DEBUG: Sets the logging level to Debug
+
+            mode_MODN:           Sets the equation to be solved in the context of MOD N
+            mode_MODP:           Sets the equation to be solved in the context of MOD P
+            mode_MODUP:          Sets the equation to be solved in the context of MOD U * P
+
+            code_level_ATTACK:   Sets the information level output during root-finding, outputs less information in ATTACK mode
+            code_level_EXP:      Sets the information level output during root-finding, outputs more information in EXP mode
+        
+        Methods:
+            Small_roots:         Main method
+    '''
     logging_level_INFO = logging.INFO
     logging_level_DEBUG = logging.DEBUG
 
@@ -15,10 +32,19 @@ class Coppersmith:
     mode_MODP = 2
     mode_MODUP = 3
 
-    code_level_ATTACK = 1
-    code_level_EXP = 2
+    code_level_ATTACK = 4
+    code_level_EXP = 5
     def __init__(self,mode = mode_MODN,modulus = None,beta = 1, rfconfig = None, etconfig = None, ulconfig = None, code_level = code_level_ATTACK,logging_level = logging_level_DEBUG) -> None:
-        
+        """
+            :param mode:            Sets the context in which the equation is solved
+            :param modulus:         Sets the modulus of the equation, required only when mode is set to mode_MODUP
+            :param beta:            Sets P as N^beta when mode is set to mode_MODP
+            :param rfconfig:        Configuration for root-finding
+            :param etconfig:        Configuration for extension strategy
+            :param ulconfig:        Configuration for splitting and linearization
+            :param code_level:      Code level, used to set the amount of detail obtained during the code execution
+            :param logging_level:   Logging level, used to set the amount of logging obtained during the code execution
+        """
         self.mode = mode
         self.beta = beta
         self.rfconfig = rfconfig
@@ -181,13 +207,13 @@ class Coppersmith:
 
     def small_roots(self, fs: list, bounds: list, i: int, u = 1, ROOTS = [], HsFilter = []) -> list:
         """
-        Small_roots:
-        :param fs: Origin polys
-        :param bounds: Bounds of roots
-        :param i: m = i * n, where m is power of modulus, n is the number of origin polys
-        :param ROOTS: The correct roots
-        :param HsFilter: Select Hs
-        :param u: when beta < 1, mod u * N ^ beta
+            Small_roots:
+                :param fs:          The original system of equations for which the roots need to be found
+                :param bounds:      Upper bounds for all the roots
+                :param i:           Sets the size of the Coppersmith lattice, related to the power of the modulus, m = i * n, where n is the number of fs
+                :param ROOTS:       Correct solutions, can be provided during experiments to quickly determine if the solutions exist in the lattice after LLL
+                :param HsFilter:    Filters the polynomials obtained after LLL, for example, setting it to [0,1,2,3] will select the first 4 polynomials
+                :param u:           Needs to be provided when mode is set to mode_MODUP
         """
         self.f0 = fs[0]
         self.n = len(fs)

@@ -66,5 +66,8 @@ Approximate Divisor Multiples Factoring with Only a Third of the Secret CRT-Expo
 
 # log
 
-2024.5.31 第一次上传
-2024.6.1  添加了CRT求根、拆分线性化适配（Config.ULConfig）、fix了mod kp情况下的多项式构造出错的问题和对Coppersmith.py的整体流程进行的调整，使得整个流程适配新的mod kp以及拆分线性化
+2024.5.31   第一次上传
+
+2024.6.1    添加了CRT求根、拆分线性化适配（Config.ULConfig）、fix了mod kp情况下的多项式构造出错的问题和对Coppersmith.py的整体流程进行的调整，使得整个流程适配新的mod kp以及拆分线性化
+
+2024.6.2    给大部分的类和方法写了说明

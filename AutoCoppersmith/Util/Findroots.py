@@ -14,11 +14,29 @@ else:
     
 
 class rootsFinder:
+    """
+        Main class for root finding.
+
+        Methods:
+            find_roots: Main method for root finding.
+    """
     def __init__(self,rfconfig: RFConfig) -> None:
+        """
+            Initialize rootsFinder with configuration provided by RFConfig.
+
+            :param rfconfig: Configuration for root finding details.
+        """
         self.rfconfig = RFConfig() if rfconfig == None else rfconfig           
 
-    def find_roots(self,R,Hs,bounds = []) -> None:
 
+    def find_roots(self,R,Hs,bounds = []) -> None:
+        """
+            Main method for root finding.
+
+            :param R:       The ring where roots are located.
+            :param Hs:      Polynomials obtained after LLL.
+            :param bounds:  Upper bounds of roots.
+        """
         method = self.rfconfig.method
 
         if method == RFConfig.method_GROEBNER:

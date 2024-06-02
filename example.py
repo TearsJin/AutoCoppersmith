@@ -35,7 +35,7 @@ monomials = [x, y, x*y, x ** 2]
 f = sum(randrange(N)*monomial for monomial in monomials)
 f -= f(*roots)
 
-exconfig = ETConfig(Ts = [0,1])
+etconfig = ETConfig(Ts = [0,1])
 
 Cp = Coppersmith(beta = 1,etconfig = etconfig, logging_level = Coppersmith.logging_level_DEBUG)
 print(Cp.small_roots([f],bounds,3))
