@@ -80,8 +80,9 @@ class rootsFinder:
         remainders = [[] for _ in range(k)]
         modulus = 1
         moduli = []
-
-        P = min(maxBound,Integer(2 ** 25))
+        ALERT = True
+        
+        P = min(Integer(maxBound),Integer(2 ** 25))
         while modulus < maxBound and len(Hs) > 0:
             P = Primes().next(P)
             R = R.change_ring(GF(P))

@@ -234,10 +234,13 @@ class Coppersmith:
         polys = []
         for f in fs:
             LC = f.coefficients().pop(0)
-            GCD = gcd(LC, self.modulus)
-            f /= LC // GCD
+            GCD = self.R(gcd(LC, self.modulus))
+            if self.mode == self.mode_MODUP:
+                f = (f * inverse_mod(LC // GCD,self.u * self.modulus)) % (self.u * self.modulus)
+            else:
+                f /= LC // GCD
             polys.append(f.change_ring(ZZ))
-
+            
         self.polys = polys
         self.R = polys[0].parent()
         self.vars = self.R.gens()
@@ -253,13 +256,13 @@ class Coppersmith:
                 Hs.append(h(*self.ulconfig.unqr))
             self.Hs = Hs
             self.R = self.ulconfig.unqr[0].parent()
-            self.bounds = [_(*self.bounds) for _ in self.ulconfig.unqr]
+            self.bounds = self.ulconfig.bounds
 
 
         if ROOTS != []:
             logging.info("Check roots: ")
             for row in self.Hs:
-                row = row.change_ring(QQ)
+                row = row.change_ring(ZZ)
                 if row(*ROOTS) == 0:
                     print("+",end=" ")
                 else:
