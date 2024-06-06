@@ -4,6 +4,7 @@ import logging
 import sys
 from AutoCoppersmith.Util.Lattice import flatter
 from AutoCoppersmith.Util.Findroots import rootsFinder
+from AutoCoppersmith.Util.Config import ETConfig
 
 LOG_FORMAT = " %(levelname)s - %(message)s"
 sys.set_int_max_str_digits(0)
@@ -114,19 +115,34 @@ class Coppersmith:
         self.M = set(self.M)
 
         # Extend strategy
-        if self.etconfig != None:
-            if self.etconfig.Ts == [] or len(self.etconfig.Ts) != self.k:
-                self.etconfig.Ts = [0] * self.k
-                logging.warning("Invalid ETConfig.")
-           
 
-            self.M = list(self.M)
-            baseM = deepcopy(self.M)
-            for v,t in zip(self.vars,self.etconfig.Ts):
-                for i in range(floor(self.m * t) + 1):
-                    self.M = list(set(list(v ** i * vector(baseM)) + self.M))
+        if self.etconfig != None: 
+            if self.etconfig.Ts == []:
+                # default extend strategy
+                Ts = [0]
+                Lm = prod(self.polys).lm()
+                lmexps = Lm.exponents()[0]
+                lms = sum([a * b for a,b in zip(lmexps,[float(log(b,self.modulus)) for b in self.bounds])])
+                for _ in range(1,self.k):
+                    Ts.append(ceil((1 - lms) / float(log(self.bounds[_],self.modulus))))
+                self.etconfig = ETConfig(Ts = Ts)
+
+        else:
+            self.etconfig = ETConfig([0] * self.k)
+
+            
+        if len(self.etconfig.Ts) != self.k:
+            self.etconfig.Ts = [0] * self.k
+            logging.warning("Invalid ETConfig.")
         
-            self.M = set(self.M)
+
+        self.M = list(self.M)
+        baseM = deepcopy(self.M)
+        for v,t in zip(self.vars,self.etconfig.Ts):
+            for i in range(floor(self.m * t) + 1):
+                self.M = list(set(list(v ** i * vector(baseM)) + self.M))
+    
+        self.M = set(self.M)
 
         # Unravelled Linearization
         if self.ulconfig != None:
