@@ -277,6 +277,7 @@ class Coppersmith:
 
         if ROOTS != []:
             logging.info("Check roots: ")
+
             for row in self.Hs:
                 row = row.change_ring(ZZ)
                 if row(*ROOTS) == 0:

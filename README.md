@@ -12,6 +12,9 @@
 
 自用的Coppersmith工具，基本的框架就是 Automated Coppersmith的流程。(基本上就是JM策略，没有对线性方程做提升，线性方程可以结合Herrmann的方法做提升，后续看怎样整合进来)
 
+
+因为一开始这个package只是自己用来做Coppersmith的ctf题和做实验调试用的，如果在使用的过程中体验很差，可以找我做修改，有遇到bug也可以提一下，非常感谢！
+
 目前可以解决的情况
 
 ​	mod N、mod p和mod kp的单变元(多变元)方程(方程组)
