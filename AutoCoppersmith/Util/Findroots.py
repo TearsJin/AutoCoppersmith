@@ -10,6 +10,7 @@ if check_package_exists("fgb_sage"):
     import fgb_sage
     FGB_EXIST = True
 else:
+    logging.info(msg="Can not find fgb_sage")
     FGB_EXIST = False
     
 

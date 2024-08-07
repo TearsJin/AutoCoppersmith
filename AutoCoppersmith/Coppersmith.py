@@ -5,6 +5,7 @@ import sys
 from AutoCoppersmith.Util.Lattice import flatter
 from AutoCoppersmith.Util.Findroots import rootsFinder
 from AutoCoppersmith.Util.Config import ETConfig
+from time import time
 
 LOG_FORMAT = " %(levelname)s - %(message)s"
 sys.set_int_max_str_digits(0)
@@ -231,6 +232,7 @@ class Coppersmith:
                 :param HsFilter:    Filters the polynomials obtained after LLL, for example, setting it to [0,1,2,3] will select the first 4 polynomials
                 :param u:           Needs to be provided when mode is set to mode_MODUP
         """
+        self.startTime = time()
         self.f0 = fs[0]
         self.n = len(fs)
         self.R = self.f0.parent()
@@ -273,7 +275,7 @@ class Coppersmith:
             self.Hs = Hs
             self.R = self.ulconfig.unqr[0].parent()
             self.bounds = self.ulconfig.bounds
-
+        
 
         if ROOTS != []:
             logging.info("Check roots: ")
@@ -289,7 +291,7 @@ class Coppersmith:
         if HsFilter != []:
             self.Hs = [self.Hs[i] for i in HsFilter]
 
-
         rf = rootsFinder(self.rfconfig)
         roots = rf.find_roots(self.R,self.Hs,bounds)
+        logging.info(msg="Run time: {}s".format(str(time() - self.startTime)))
         return roots

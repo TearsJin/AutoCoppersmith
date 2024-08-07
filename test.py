@@ -1,16 +1,44 @@
-# https://github.com/TearsJin/AutoCoppersmith
-# For the chal SCP-0εε in R3CTF2024
+from sage.all import sqrt, Matrix, Integer, Zmod, PolynomialRing, inverse_mod
+from Crypto.Util.number import getPrime
 from AutoCoppersmith.Coppersmith import Coppersmith
-from AutoCoppersmith.Util.Config import RFConfig
 
-from sage.all import *
+Nbits = 200
+beta = 0.5
+p, q = getPrime(int(Nbits * beta)), getPrime(Nbits - int(Nbits * beta))
+N = p * q
+s = - (p + q)
 
-N = 16560864354170001754058994512672943318940563370976087798466444727881483330942761871352258869577528553572663755957451586119530166974019489639824958689951617276161495644698610967505623963141115301453407833169441870214457028613126422544192376164562636961183685768882768312923714718974394046529737415829239869985138300035260197768109884692196300418128283001411459636932202117661934374282660653623201000258881545142769739613476895287578432668782523878551310276636940681367529703509645615758511763411234629347145718846540646434928674409510317321022775260360951885592032817087179680011170316690231298208905101051835044960739
-k = 1384368362335504207966549759103327813579924965137177857370654240988463990646382435845333383
-X = 2 ** 790
-rfcfg = RFConfig(method = RFConfig.method_GROEBNER,crtRootSign = [RFConfig.SIGNPOSITIVE])
-PR = PolynomialRing(ZZ,"x",1)
-x = PR.gens()[0]
-f = 0x8150ef932c24cabd * x  + 156836185692941550685700830474694810801481665972206761284102272745592205857267403669744401464803337850596191972703703054530778045202934271320509563462849102899119175874347103045300490340884691560845949337977390221147286384470287571194570435220134004423720066330220713360755490696975534869765259187925645069511484082883584773826540218677265291260254674449374287218468318302260595563533738636720497174
-Cp = Coppersmith(mode = Coppersmith.mode_MODUP,modulus = N,beta = 0.5,rfconfig = rfcfg)
-print(Cp.small_roots(fs = [f],bounds = [X],i = 25,u = k))
+A = N + 1
+R = int(sqrt(N))
+
+delta = 0.27
+d = getPrime(int(delta * Nbits))
+e = int(inverse_mod(d, (p - 1) * (q - 1)))
+k = (e * d - 1) // (p - 1) // (q - 1)
+
+M = Matrix([[R, e], [0, -A]])
+M = M.LLL()
+l1, l2 = Integer(M[0][0] / R), M[1][0] / R
+print(Integer(d).nbits() - l1.nbits())
+for x in range(2 ** 20):
+    if (d - x * l1) % l2 == 0:
+        z0 = (d - x * l1) // l2
+        print(x, z0)
+        break
+    if (d + x * l1) % l2 == 0:
+        z0 = (d + x * l1) // l2
+        print(-x, z0)
+        break
+
+PR = PolynomialRing(Zmod(e * l1), ["x", "y", "z"], 3)
+x, y, z = PR.gens()
+f = x + int(A) * y - int(e * l2) * z
+
+Cp = Coppersmith(beta=1, logging_level=Coppersmith.logging_level_DEBUG)
+roots = Cp.small_roots(
+        [f],
+        [int(N ** (1/2 + delta)), int(N ** delta), int(N ** (delta - 1/4))],
+        3,
+        ROOTS=[k * s + 1, k, z0]
+        )
+print(roots, k, z0)
