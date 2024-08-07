@@ -1,0 +1,16 @@
+LICENSE
+README.md
+setup.py
+AutoCoppersmith/Coppersmith.py
+AutoCoppersmith/__init__.py
+AutoCoppersmith.egg-info/PKG-INFO
+AutoCoppersmith.egg-info/SOURCES.txt
+AutoCoppersmith.egg-info/dependency_links.txt
+AutoCoppersmith.egg-info/requires.txt
+AutoCoppersmith.egg-info/top_level.txt
+AutoCoppersmith/Util/Config.py
+AutoCoppersmith/Util/Findroots.py
+AutoCoppersmith/Util/Lattice.py
+AutoCoppersmith/Util/Misc.py
+AutoCoppersmith/Util/__init__.py
+AutoCoppersmith/Util/loggingConfig.py
