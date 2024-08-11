@@ -3,9 +3,10 @@ from sage.all import *
 from AutoCoppersmith.Util.Lattice import flatter
 from AutoCoppersmith.Util.Findroots import rootsFinder
 from AutoCoppersmith.Util.Config import ETConfig
-from AutoCoppersmith.Util.loggingConfig import logging
 from time import time
 import sys
+
+from AutoCoppersmith.Util.loggingConfig import logging
 
 LOG_FORMAT = " %(levelname)s - %(message)s"
 sys.set_int_max_str_digits(0)
@@ -54,7 +55,7 @@ class Coppersmith:
         self.ulconfig = ulconfig
         self.code_level = code_level
 
-        logging.basicConfig(level = logging_level, format = LOG_FORMAT )
+        logging.basicConfig(level = logging_level, format = LOG_FORMAT, force=True)
         if self.beta > 1:
             logging.error("Invalid beta")
             exit()
